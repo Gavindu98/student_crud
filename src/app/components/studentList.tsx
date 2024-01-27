@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash, faPencilAlt, faSync } from '@fortawesome/free-solid-svg-icons';
 import { ToastContainer, toast } from "react-toastify";
+import Swal from "sweetalert2";
 import "react-toastify/dist/ReactToastify.css";
 
 interface Student {
@@ -20,6 +21,7 @@ const StudentTable: React.FC = () => {
     });
     const [students, setStudents] = useState<Student[]>([]);
     const [updatedStudentId, setUpdatedStudentId] = useState<string>();
+    const [isLoading, setIsLoading] = useState<boolean>(true)
 
     useEffect(() => {
         getStudentList();
@@ -34,8 +36,10 @@ const StudentTable: React.FC = () => {
             } else {
                 toast.error('Failed to fetch students data!', { position: 'top-right' });
             }
+            setIsLoading(false)
         } catch (error) {
             toast.error('Something went wrong!', { position: 'top-right' });
+            setIsLoading(false)
         }
     }
 
@@ -65,16 +69,30 @@ const StudentTable: React.FC = () => {
                     contactNumber: formData?.contactNumber,
                 },
             }
-            
-            if(updatedStudentId){
-                const updatedStudentData = {
-                    _id: updatedStudentId,  // Replace with the actual student ID
-                    name: formData?.name,
-                    email: formData?.email,
-                    contactNumber: formData?.contactNumber
-                  };
-                updateStudent(updatedStudentData)
-            }else{
+
+            if (updatedStudentId) {
+                Swal.fire({
+                    icon: "question",
+                    title: "Are you sure you want to update?",
+                    showCancelButton: true,
+                    confirmButtonText: "Unblock",
+                    confirmButtonColor: "#3B82F6",
+                    cancelButtonColor: "#EF4444",
+                }).then((result: { isConfirmed: any; }) => {
+                    if (result.isConfirmed) {
+                        const updatedStudentData = {
+                            _id: updatedStudentId,
+                            name: formData?.name,
+                            email: formData?.email,
+                            contactNumber: formData?.contactNumber
+                        };
+                        updateStudent(updatedStudentData)
+                    } else {
+                        setUpdatedStudentId('')
+                        setFormData({ ...formData, name: "", email: "", contactNumber: "" })
+                    }
+                });
+            } else {
                 const response = await fetch('/api/students/add', {
                     method: 'POST',
                     headers: {
@@ -84,7 +102,6 @@ const StudentTable: React.FC = () => {
                 });
                 const data = await response.json()
                 if (response.ok) {
-                    // console.log("data==>",data?.student_id)
                     const newStudent = {
                         _id: data?.student_id,
                         name: formData?.name,
@@ -98,38 +115,52 @@ const StudentTable: React.FC = () => {
                     toast.error("Student add failed!", { position: 'top-right', });
                 }
             }
-            
+
         } catch (error) {
             toast.error("Something Went wrong!", { position: 'top-right', });
         }
     };
-    async function updateStudent(studentData: Student) {
+    const updateStudent = async (studentData: Student) => {
         try {
-          const response = await fetch('/api/students/update', { // Replace with your actual API endpoint
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ data: studentData }),
-          });
-      
-          const responseData = await response.json();
-          console.log("response=======>",response)
-          console.log("responseData=======>",responseData)
-          if (response.ok) {
-            console.log('Update successful:', responseData);
-            // Additional UI logic on successful update
-          } else {
-            console.error('Update failed:', responseData.message);
-            // UI logic to handle errors
-          }
+            const response = await fetch('/api/students/update', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ data: studentData }),
+            });
+            if (response.ok) {
+                const studentKey = students.findIndex((therapist: Student) => therapist._id == updatedStudentId);
+                const previousStudent = { ...students[studentKey] };
+                const updatedStudent = { ...previousStudent, name: studentData?.name, email: studentData?.email, contactNumber: studentData?.contactNumber };
+                students[studentKey] = updatedStudent;
+                setStudents(students)
+                setUpdatedStudentId('')
+                toast.success("Student updated successfully!", { position: 'top-right', });
+                setFormData({ ...formData, name: "", email: "", contactNumber: "" })
+            } else {
+                toast.error("Student update failed!", { position: 'top-right', });
+            }
         } catch (error) {
-          console.error('Error updating student:', error);
-          // UI logic to handle errors
+            toast.error("Student update failed!", { position: 'top-right', });
         }
-      }
-      
+    }
+
     const handleDelete = async (student: Student) => {
+        Swal.fire({
+            icon: "question",
+            title: "Are you sure you want to delete?",
+            showCancelButton: true,
+            confirmButtonText: "Unblock",
+            confirmButtonColor: "#3B82F6",
+            cancelButtonColor: "#EF4444",
+        }).then((result: { isConfirmed: any; }) => {
+            if (result.isConfirmed) {
+                deleteStudent(student)
+            }
+        });
+    };
+    const deleteStudent = async (student: Student) => {
         try {
             const dataSet = {
                 data: {
@@ -143,8 +174,6 @@ const StudentTable: React.FC = () => {
                 },
                 body: JSON.stringify(dataSet),
             });
-            const data = await response.json();
-            console.log("res=====>", response);
             if (response.ok) {
                 removeStudentById(student._id ? student._id : null)
                 toast.success("Student deleted successfully!", { position: 'top-right' });
@@ -154,7 +183,7 @@ const StudentTable: React.FC = () => {
         } catch (error) {
             toast.error("Something Went wrong!", { position: 'top-right' });
         }
-    };
+    }
     const removeStudentById = (idToRemove: string | null): void => {
         if (idToRemove) {
             const updatedStudents = students.filter(student => student._id !== idToRemove);
@@ -164,27 +193,6 @@ const StudentTable: React.FC = () => {
     const handleUpdate = async (student: Student) => {
         setUpdatedStudentId(student?._id)
         setFormData({ ...formData, name: student?.name, email: student?.email, contactNumber: student?.contactNumber })
-        // if (res.success) {
-        //     Swal.fire({
-        //       icon: "success",
-        //       title: "User blocked!",
-        //       confirmButtonColor: "#FD7F00",
-        //     });
-        //     const therapistKey = therapists.findIndex((therapist: Therapist) => therapist._id == userId);
-        //     const previousTherapist = { ...therapists[therapistKey] };
-        //     const updatedTherapist = { ...previousTherapist, blockedByAdmin: true };
-        //     therapists[therapistKey] = updatedTherapist;
-        //     console.log("therapists==>", therapists)
-        //     setTherapists(therapists);
-        //     toggleReasonModal()
-        //   } else {
-        //     Swal.fire({
-        //       icon: "error",
-        //       title: "Failed to block the user.",
-        //       confirmButtonColor: "#FD7F00",
-        //     });
-        //     toggleReasonModal
-        //   }
     }
     const refresh = () => {
         setUpdatedStudentId('')
@@ -222,17 +230,30 @@ const StudentTable: React.FC = () => {
                     />
                     <div className='flex justify-center items-center'>
                         <button type="submit" className="bg-blue-500 text-white rounded-md py-1 px-2 cursor-pointer w-full">
-                            {updatedStudentId? 'Update Student':'Add Student'}
+                            {updatedStudentId ? 'Update Student' : 'Add Student'}
                         </button>
-                        <FontAwesomeIcon
-                            icon={faSync}
-                            onClick={() => refresh()}
-                            className="cursor-pointer text-green-800 hover:text-green-700 ms-3 text-xl scale-125"
-                        />
+                        {
+                            !isLoading && (
+                                <FontAwesomeIcon
+                                    icon={faSync}
+                                    onClick={() => refresh()}
+                                    className="cursor-pointer text-green-800 hover:text-green-700 ms-3 text-xl scale-125"
+                                />
+                            )
+                        }
                     </div>
                 </form>
             </div>
-
+            {
+                students?.length == 0 && isLoading && (
+                    <p className='text-center text-text-3xl mt-8 text-black '>Loading...</p>
+                )
+            }
+            {
+                students?.length == 0 && !isLoading && (
+                    <p className='text-center text-text-3xl mt-8 text-black '>No Students</p>
+                )
+            }
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
                 {students?.map((student, index) => (
                     <div key={index} className="max-w-lg w-full bg-white shadow-lg rounded-lg overflow-hidden">

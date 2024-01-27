@@ -26,15 +26,8 @@ export async function PUT(req: NextRequest) {
       { $set: updateData }
     )
 
-    if (result.modifiedCount === 0) {
-      return NextResponse.json(
-        { message: 'No changes were made or student not found' },
-        { status: 404 }
-      )
-    }
-
     return NextResponse.json(
-      { message: 'Student data updated successfully' },
+      { message: 'Student data updated successfully',result: result },
       { status: 200 }
     )
   } catch (error) {

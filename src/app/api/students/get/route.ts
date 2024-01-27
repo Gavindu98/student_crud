@@ -1,8 +1,6 @@
-// Import necessary modules
 import clientPromise from '../../../../../lib/mongodb'
 import { NextRequest, NextResponse } from 'next/server'
 
-// Define the GET API route handler
 export async function GET(req: NextRequest) {
   try {
     const client = await clientPromise
