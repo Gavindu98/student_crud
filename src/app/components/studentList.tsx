@@ -75,7 +75,7 @@ const StudentTable: React.FC = () => {
                     icon: "question",
                     title: "Are you sure you want to update?",
                     showCancelButton: true,
-                    confirmButtonText: "Unblock",
+                    confirmButtonText: "Update",
                     confirmButtonColor: "#3B82F6",
                     cancelButtonColor: "#EF4444",
                 }).then((result: { isConfirmed: any; }) => {
@@ -151,7 +151,7 @@ const StudentTable: React.FC = () => {
             icon: "question",
             title: "Are you sure you want to delete?",
             showCancelButton: true,
-            confirmButtonText: "Unblock",
+            confirmButtonText: "Delete",
             confirmButtonColor: "#3B82F6",
             cancelButtonColor: "#EF4444",
         }).then((result: { isConfirmed: any; }) => {
@@ -210,7 +210,7 @@ const StudentTable: React.FC = () => {
                         value={formData.name}
                         onChange={handleChange}
                         placeholder="Name"
-                        className="bg-gray-200 rounded-md py-1 px-2 w-full"
+                        className="bg-gray-200 rounded-md py-1 px-2 w-full text-black"
                     />
                     <input
                         type="text"
@@ -218,7 +218,7 @@ const StudentTable: React.FC = () => {
                         value={formData.contactNumber}
                         onChange={handleChange}
                         placeholder="Contact Number"
-                        className="bg-gray-200 rounded-md py-1 px-2 w-full"
+                        className="bg-gray-200 rounded-md py-1 px-2 w-full text-black"
                     />
                     <input
                         type="email"
@@ -226,7 +226,7 @@ const StudentTable: React.FC = () => {
                         value={formData.email}
                         onChange={handleChange}
                         placeholder="Email"
-                        className="bg-gray-200 rounded-md py-1 px-2 w-full"
+                        className="bg-gray-200 rounded-md py-1 px-2 w-full text-black"
                     />
                     <div className='flex justify-center items-center'>
                         <button type="submit" className="bg-blue-500 text-white rounded-md py-1 px-2 cursor-pointer w-full">
