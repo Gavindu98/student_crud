@@ -202,7 +202,7 @@ const StudentTable: React.FC = () => {
     return (
         <>
             <ToastContainer />
-            <div className='flex justify-center items-center mb-12'>
+            <div className='flex justify-center items-center mb-12 mt-16 md:mt-2'>
                 <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <input
                         type="text"
